@@ -34,7 +34,7 @@ class Paitent(BaseModel):
             ("other", "Other"),
         ],
     )
-    phone = IntegerField(max_length=13)
+    phone = TextField(max_length=13)
     email = EmailField()
     address = TextField()
     medical_history = TextField(blank=True, null=True)
@@ -51,7 +51,7 @@ class Doctor(BaseModel):
     first_name = CharField(max_length=64)
     last_name = CharField(max_length=64)
     specilization = CharField(max_length=128)
-    phone = IntegerField(max_length=13)
+    phone = TextField(max_length=13)
     email = EmailField()
     license = CharField(max_length=128)
     address = TextField()
