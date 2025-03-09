@@ -10,7 +10,7 @@ from rest_framework.serializers import (
     ReadOnlyField,
 )
 from django.contrib.auth.models import User
-from .models import Patient, Doctor, PatientDoctorMapping
+from .models import Patient, Doctor, PatientDoctorTable
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import re
@@ -139,11 +139,11 @@ class DoctorSerializer(ModelSerializer):
 
 class PatientDoctorMappingSerializer(ModelSerializer):
 
-    patient_name = ReadOnlyField(source="paitent.__str__")
+    patient_name = ReadOnlyField(source="patient.__str__")
     doctor_name = ReadOnlyField(source="doctor.__str__")
 
     class Meta:
-        model = PatientDoctorMapping
+        model = PatientDoctorTable
         fields = "__all__"
         reads_only_fields = ("created_at", "updated_at")
 
@@ -158,7 +158,7 @@ class PatientDoctorMappingSerializer(ModelSerializer):
         ):
             return data
 
-        if PatientDoctorMapping.objects.filter(patient=patient, doctor=doctor).exists():
+        if PatientDoctorTable.objects.filter(patient=patient, doctor=doctor).exists():
             raise ValidationError("This patient is already assigned to this doctor.")
 
         if self.context["request"].method != "GET":

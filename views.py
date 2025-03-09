@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Patient, Doctor, PatientDoctorMapping
+from .models import Patient, Doctor, PatientDoctorTable
 from .serializers import (
     UserSerializer,
     PatientSerializer,
@@ -255,7 +255,7 @@ class MappingListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return PatientDoctorMapping.objects.filter(patient__user=self.request.user)
+        return PatientDoctorTable.objects.filter(patient__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         if "patient" in request.data:

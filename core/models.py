@@ -21,8 +21,8 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Paitent(BaseModel):
-    user = ForeignKey(User, on_delete=models.CASCADE, related_name="paitent")
+class Patient(BaseModel):
+    user = ForeignKey(User, on_delete=models.CASCADE, related_name="patient")
     first_name = CharField(max_length=64)
     last_name = CharField(max_length=64)
     date_of_birth = DateField(blank=False, null=False)
@@ -64,11 +64,11 @@ class Doctor(BaseModel):
         ordering = ["last_name", "first_name"]
 
 
-class PaitentDoctorTable(BaseModel):
-    paitent = ForeignKey(
-        Paitent, on_delete=models.CASCADE, related_name="doctor_paitent"
+class PatientDoctorTable(BaseModel):
+    patient = ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name="doctor_patient"
     )
-    doctor = ForeignKey(Doctor, on_delete=models.CASCADE, related_name="paitent_doctor")
+    doctor = ForeignKey(Doctor, on_delete=models.CASCADE, related_name="patient_doctor")
     appointment_date = DateField(blank=False, null=False)
     appointment_time = TimeField(blank=False, null=False)
     symptoms = TextField()
@@ -77,8 +77,8 @@ class PaitentDoctorTable(BaseModel):
     is_active = BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.paitent} < ------ > {self.doctor}"
+        return f"{self.patient} < ------ > {self.doctor}"
 
     class Meta:
         ordering = ["appointment_date"]
-        unique_together = ["paitent", "doctor", "appointment_date", "appointment_time"]
+        unique_together = ["patient", "doctor", "appointment_date", "appointment_time"]
