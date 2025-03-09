@@ -9,6 +9,24 @@ logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
+    """
+    The `custom_exception_handler` function handles different types of exceptions and returns
+    appropriate responses based on the exception type.
+
+    :param exc: The `exc` parameter in the `custom_exception_handler` function represents the exception
+    that was raised during the execution of the code. It could be any type of exception such as
+    `IntegrityError`, `DjangoValidationError`, or a generic `Exception`. The function handles different
+    types of exceptions and generates
+    :param context: The `context` parameter in the `custom_exception_handler` function typically refers
+    to the request context or the context in which the exception occurred. It contains information about
+    the request, such as the request data, user information, and other relevant details that can help in
+    handling the exception appropriately. This context is
+    :return: The custom_exception_handler function returns a Response object based on the type of
+    exception that occurred. If the exception is an IntegrityError, it returns a response indicating a
+    database integrity error. If the exception is a DjangoValidationError, it returns a response with
+    the error messages. If the exception is of type Exception, it returns a response indicating an
+    unexpected error. If none of these conditions are met, it returns
+    """
 
     response = exception_handler(exc, context)
 

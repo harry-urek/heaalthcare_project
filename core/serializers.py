@@ -17,6 +17,8 @@ import re
 from datetime import date
 
 
+# This class is a serializer in Python for creating and validating user data, including fields for
+# username, password, email, and name.
 class UserSerializer(ModelSerializer):
 
     password = CharField(write_only=True)
@@ -69,6 +71,8 @@ class UserSerializer(ModelSerializer):
         return user
 
 
+# The `PatientSerializer` class in Python defines validation rules and data creation logic for a
+# Patient model.
 class PatientSerializer(ModelSerializer):
 
     class Meta:
@@ -78,7 +82,7 @@ class PatientSerializer(ModelSerializer):
 
     def validate_phone(self, value):
         if not re.match(r"^\+?[0-9]{10,15}$", value):
-            raise serializers.ValidationError(
+            raise ValidationError(
                 "Phone number must be between 10-15 digits and may include a + prefix."
             )
         return value
@@ -102,6 +106,8 @@ class PatientSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
+# The `DoctorSerializer` class in Python defines serialization behavior for the Doctor model,
+# including validation for phone numbers and emails.
 class DoctorSerializer(ModelSerializer):
 
     class Meta:
@@ -125,6 +131,10 @@ class DoctorSerializer(ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+
+# The `PatientDoctorMappingSerializer` class in Python defines serialization logic for mapping
+# patients to doctors, including validation rules.
 
 
 class PatientDoctorMappingSerializer(ModelSerializer):
