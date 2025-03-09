@@ -14,6 +14,8 @@ from .permissions import IsOwnerOrReadOnly, IsPatientOwner
 from django.core.exceptions import ObjectDoesNotExist
 
 
+# The `RegisterView` class in Python is a view that allows user registration with validation and
+# response handling.
 class RegisterView(generics.CreateAPIView):
 
     queryset = User.objects.all()
@@ -49,6 +51,8 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+# The `PatientListCreateView` class in Python defines a view for listing and creating patient objects,
+# with permission restrictions to only allow access to patients belonging to the current user.
 class PatientListCreateView(generics.ListCreateAPIView):
     serializer_class = PatientSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -82,6 +86,8 @@ class PatientListCreateView(generics.ListCreateAPIView):
         )
 
 
+# The `PatientDetailView` class in Python defines API views for retrieving, updating, and deleting
+# patient objects belonging to the current user with appropriate error handling.
 class PatientDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = PatientSerializer
@@ -144,6 +150,8 @@ class PatientDetailView(generics.RetrieveUpdateDestroyAPIView):
             )
 
 
+# The `DoctorListView` class is a Django REST framework view that lists and creates Doctor objects
+# with authentication and validation handling.
 class DoctorListView(generics.ListCreateAPIView):
 
     queryset = Doctor.objects.all()
@@ -178,6 +186,8 @@ class DoctorListView(generics.ListCreateAPIView):
         )
 
 
+# The `DoctorDetailView` class is a Django REST framework view that allows retrieving, updating, and
+# deleting instances of the `Doctor` model with authentication permissions.
 class DoctorDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Doctor.objects.all()
@@ -237,6 +247,8 @@ class DoctorDetailView(generics.RetrieveUpdateDestroyAPIView):
             )
 
 
+# The class MappingListView is a generic view in Django REST framework for listing and creating
+# objects.
 class MappingListView(generics.ListCreateAPIView):
 
     serializer_class = PatientDoctorMappingSerializer
@@ -289,6 +301,8 @@ class MappingListView(generics.ListCreateAPIView):
         )
 
 
+# This class is a view in a Django REST framework API that lists doctors assigned to a specific
+# patient, with permission checks.
 class PatientDoctorsView(generics.ListAPIView):
 
     serializer_class = PatientDoctorMappingSerializer
@@ -339,6 +353,8 @@ class PatientDoctorsView(generics.ListAPIView):
         return Response({"status": "success", "data": serializer.data})
 
 
+# The `MappingDetailView` class retrieves and serializes a specific `PatientDoctorMapping` instance
+# based on the authenticated user's ownership.
 class MappingDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = PatientDoctorMappingSerializer
     permission_classes = (permissions.IsAuthenticated, IsPatientOwner)
@@ -359,6 +375,21 @@ class MappingDetailView(generics.RetrieveDestroyAPIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+    """
+    This Python function deletes a doctor-patient mapping and returns a success message or an error
+    message if deletion fails.
+    
+    :param request: The `request` parameter in the `destroy` method is typically an object that contains
+    information about the incoming HTTP request, such as headers, user authentication details, and
+    request data. It is commonly used in Django REST framework views to access information about the
+    request being made to the API endpoint
+    :return: The `destroy` method is returning a Response object with a JSON payload containing the
+    status and message of the operation. If the deletion is successful, it returns a success message
+    with a status code of 204 (NO CONTENT). If an exception occurs during the deletion process, it
+    returns an error message with a status code of 400 (BAD REQUEST) along with the details of the
+    exception.
+    """
 
     def destroy(self, request, *args, **kwargs):
         try:
