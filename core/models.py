@@ -65,5 +65,6 @@ class PaitentDoctorTable(BaseModel):
         return f'{self.paitent} < ------ > {self.doctor}'
     
     class Meta:
-        ordering = ['created_at']
+        ordering = ['appointment_date']
+        unique_together = ['paitent', 'doctor', 'appointment_date', 'appointment_time']
     
