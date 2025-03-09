@@ -152,7 +152,7 @@ class PatientDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # The `DoctorListView` class is a Django REST framework view that lists and creates Doctor objects
 # with authentication and validation handling.
-class DoctorListView(generics.ListCreateAPIView):
+class DoctorListCreateView(generics.ListCreateAPIView):
 
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
@@ -249,7 +249,7 @@ class DoctorDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # The class MappingListView is a generic view in Django REST framework for listing and creating
 # objects.
-class MappingListView(generics.ListCreateAPIView):
+class MappingListCreateView(generics.ListCreateAPIView):
 
     serializer_class = PatientDoctorMappingSerializer
     permission_classes = [permissions.IsAuthenticated]
