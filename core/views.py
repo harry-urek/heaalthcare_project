@@ -49,6 +49,39 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+class PatientListCreateView(generics.ListCreateAPIView):
+    serializer_class = PatientSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        # Only return patients that belong to the current user
+        return Patient.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "Patient created successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                    headers=headers,
+                )
+        return Response(
+            {
+                "status": "error",
+                "message": "Failed to create patient",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class PatientDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = PatientSerializer
@@ -143,3 +176,204 @@ class DoctorListView(generics.ListCreateAPIView):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class DoctorDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"status": "success", "data": serializer.data})
+        except ObjectDoesNotExist:
+            return Response(
+                {"status": "error", "message": "Doctor not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        if serializer.is_valid():
+            with transaction.atomic():
+                self.perform_update(serializer)
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "Doctor updated successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        return Response(
+            {
+                "status": "error",
+                "message": "Doctor update failed",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(
+                {"status": "success", "message": "Doctor deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        except Exception as e:
+            return Response(
+                {"status": "error", "message": f"Failed to delete doctor: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class MappingListView(generics.ListCreateAPIView):
+
+    serializer_class = PatientDoctorMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PatientDoctorMapping.objects.filter(patient__user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        if "patient" in request.data:
+            try:
+                patient_id = request.data["patient"]
+                if not Patient.objects.filter(
+                    id=patient_id, user=request.user
+                ).exists():
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": "You can only create mappings for your own patients",
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            except (ValueError, TypeError):
+                return Response(
+                    {"status": "error", "message": "Invalid patient ID"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "Doctor-patient mapping created successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                    headers=headers,
+                )
+        return Response(
+            {
+                "status": "error",
+                "message": "Failed to create mapping",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class PatientDoctorsView(generics.ListAPIView):
+
+    serializer_class = PatientDoctorMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        patient_id = self.kwargs["patient_id"]
+
+        try:
+            patient = Patient.objects.get(id=patient_id)
+            if patient.user != self.request.user:
+                return PatientDoctorMapping.objects.none()
+            return PatientDoctorMapping.objects.filter(patient_id=patient_id)
+        except Patient.DoesNotExist:
+            return PatientDoctorMapping.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not queryset.exists():
+            patient_id = self.kwargs["patient_id"]
+            if Patient.objects.filter(id=patient_id).exists():
+                if not Patient.objects.filter(
+                    id=patient_id, user=request.user
+                ).exists():
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": "You don't have permission to view this patient's doctors",
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "No doctors assigned to this patient",
+                        "data": [],
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {"status": "error", "message": "Patient not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"status": "success", "data": serializer.data})
+
+
+class MappingDetailView(generics.RetrieveDestroyAPIView):
+    serializer_class = PatientDoctorMappingSerializer
+    permission_classes = (permissions.IsAuthenticated, IsPatientOwner)
+
+    def get_queryset(self):
+        return PatientDoctorMapping.objects.filter(patient__user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({"status": "success", "data": serializer.data})
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    "status": "error",
+                    "message": "Mapping not found or you don't have permission to view it",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            with transaction.atomic():
+                self.perform_destroy(instance)
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "Doctor-patient mapping deleted successfully",
+                    },
+                    status=status.HTTP_204_NO_CONTENT,
+                )
+        except Exception as e:
+            return Response(
+                {"status": "error", "message": f"Failed to delete mapping: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
