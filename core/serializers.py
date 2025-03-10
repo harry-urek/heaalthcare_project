@@ -31,7 +31,8 @@ class UserSerializer(ModelSerializer):
             "id",
             "username",
             "first_name",
-            "last_name" "password",
+            "last_name",
+            "password",
             "confirm_password",
             "email",
         )
@@ -102,7 +103,9 @@ class PatientSerializer(ModelSerializer):
         return value
 
     def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user
+        request = self.context.get("request")
+        if request:
+            validated_data["user"] = request.user
         return super().create(validated_data)
 
 

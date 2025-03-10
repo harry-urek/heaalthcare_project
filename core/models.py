@@ -50,7 +50,7 @@ class Doctor(BaseModel):
 
     first_name = CharField(max_length=64)
     last_name = CharField(max_length=64)
-    specilization = CharField(max_length=128)
+    specialization = CharField(max_length=128)
     phone = TextField(max_length=13)
     email = EmailField()
     license = CharField(max_length=128)

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from views import (
+from core.views import (
     RegisterView,
     PatientListCreateView,
     PatientDetailView,
